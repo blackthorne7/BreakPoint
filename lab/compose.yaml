@@ -1,8 +1,6 @@
 services:
   struts2-s2-045:
     image: vulhub/struts2@sha256:b992e080d8e5ad332bf526ae26124d28f56ca4fc9e0eaa91510dbee9870eb2c8
-    ports:
-      - "127.0.0.1:18080:8080"
     networks:
       - isolated-lab
     restart: "no"
@@ -14,6 +12,27 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  lab-proxy:
+    image: nginxinc/nginx-unprivileged:alpine
+    depends_on:
+      - struts2-s2-045
+    ports:
+      - "127.0.0.1:18080:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - host-facing
+      - isolated-lab
+    restart: "no"
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
 networks:
+  host-facing: {}
   isolated-lab:
     internal: true

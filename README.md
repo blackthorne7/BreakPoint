@@ -4,7 +4,7 @@ BreakPoint is a self-improving security benchmark for repeatable experiments in 
 
 ## Public demo
 
-The static demo page is in `index.html` and `styles.css`. Its baseline card is explicitly marked as a fixture: it does not claim that a measured lab run has happened yet. The page is read-only and does not expose a target or launch scans.
+The static demo page is in `index.html` and `styles.css`. Its linked baseline record reports a measured, fixed Nmap scanner run; it is clearly labeled as a scanner baseline rather than an autonomous-agent run. The page is read-only and does not expose a target or launch scans.
 
 ## Local preview
 

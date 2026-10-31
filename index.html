@@ -45,18 +45,18 @@
       <section class="baseline section" id="baseline">
         <div class="section-heading">
           <div><div class="eyebrow muted">01 / BASELINE RUN</div><h2>Run one. <em>Starting point.</em></h2></div>
-          <span class="run-tag"><span class="status-dot"></span> FIXED DEMO RECORD</span>
+          <span class="run-tag"><span class="status-dot"></span> MEASURED SCANNER BASELINE</span>
         </div>
-        <p class="section-intro">A fixture for the public demo page while the first measured lab run is being prepared. The values below are illustrative and are not represented as results from an executed run.</p>
+        <p class="section-intro">A fixed Nmap check against the isolated Struts 2.3.30 lab confirmed CVE-2017-5638. This is a measured scanner baseline, not an autonomous-agent run; no model or token usage is included.</p>
         <div class="run-card">
           <div class="run-card-head"><div><span class="metric-label">ENVIRONMENT</span><strong>Apache Struts 2 · S2-045</strong></div><span class="cve">CVE-2017-5638</span></div>
           <div class="run-grid">
-            <div class="run-stat"><span class="metric-label">OUTCOME</span><strong class="pending">PENDING</strong><small>Awaiting measured baseline</small></div>
-            <div class="run-stat"><span class="metric-label">TOOL CALLS</span><strong>—</strong><small>Not yet recorded</small></div>
-            <div class="run-stat"><span class="metric-label">ELAPSED</span><strong>—</strong><small>Not yet recorded</small></div>
-            <div class="run-stat"><span class="metric-label">TOKEN COST</span><strong>—</strong><small>Not yet recorded</small></div>
+            <div class="run-stat"><span class="metric-label">OUTCOME</span><strong>VULNERABLE</strong><small>Detected by Nmap NSE</small></div>
+            <div class="run-stat"><span class="metric-label">TOOL CALLS</span><strong>1</strong><small>Fixed CVE check</small></div>
+            <div class="run-stat"><span class="metric-label">ELAPSED</span><strong>11.17s</strong><small>Wall time</small></div>
+            <div class="run-stat"><span class="metric-label">TOKEN COST</span><strong>N/A</strong><small>No model used</small></div>
           </div>
-          <div class="run-foot"><span><span class="status-dot"></span> REPEATABLE ENVIRONMENT CONFIGURED FOR DEMO</span><span>RECORD TYPE: FIXTURE</span></div>
+          <div class="run-foot"><span><span class="status-dot"></span> ISOLATED LOOPBACK LAB · NMAP 7.992</span><a href="baseline-run.json">RUN ID: struts2-s2045-nmap-20261031T225353604818Z ↗</a></div>
         </div>
       </section>
 
