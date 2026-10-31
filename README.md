@@ -21,9 +21,10 @@ Then open `http://localhost:8080`.
 The `Dockerfile` packages the page in NGINX, configured to listen on port 8080. Build and deploy it with the Unikraft CLI:
 
 ```sh
-unikraft build ./Dockerfile --arch x86_64 --output <your-org>/breakpoint:latest
+unikraft build . --output index.unikraft.io/<your-org>/breakpoint:latest
 unikraft run --metro sfo --name breakpoint --domain breakpoint.sfo.unikraft.app \
-  -p 443:8080/http+tls -p 80:443/http+redirect --image <your-org>/breakpoint:latest
+  -m 256M -p 443:8080/http+tls -p 80:443/http+redirect \
+  --image index.unikraft.io/<your-org>/breakpoint:latest
 ```
 
 Keep API tokens out of the repository. For the run comparison and agent architecture, see [PLAN.md](PLAN.md).
