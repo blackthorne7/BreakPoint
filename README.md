@@ -16,6 +16,14 @@ python3 -m http.server 8080
 
 Then open `http://localhost:8080`.
 
+## First isolated lab
+
+The first target is documented in [lab/README.md](lab/README.md). It binds only to host loopback and uses an internal-only Docker network. The target is never deployed with the public demo.
+
+## Run records
+
+Initialize the local append-only SQLite store with `python3 run_store.py init`. Completed run records can be appended from JSON with `python3 run_store.py record path/to/run.json`; see [docs/run-record.md](docs/run-record.md) for the record format. Local database files are ignored by Git.
+
 ## Unikraft deployment
 
 The `Dockerfile` packages the page in NGINX, configured to listen on port 8080. Build and deploy it with the Unikraft CLI:

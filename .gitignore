@@ -2,5 +2,7 @@
 .env.*
 !.env.example
 .tools/
+data/*.sqlite3
+data/*.sqlite3-*
 .DS_Store
 

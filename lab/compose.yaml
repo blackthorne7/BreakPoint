@@ -1,0 +1,19 @@
+services:
+  struts2-s2-045:
+    image: vulhub/struts2:2.3.30
+    ports:
+      - "127.0.0.1:18080:8080"
+    networks:
+      - isolated-lab
+    restart: "no"
+    mem_limit: 1g
+    cpus: 1.0
+    pids_limit: 256
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  isolated-lab:
+    internal: true
