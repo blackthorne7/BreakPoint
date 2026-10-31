@@ -4,6 +4,8 @@
 .tools/
 data/*.sqlite3
 data/*.sqlite3-*
+data/events/
+data/notes/
 __pycache__/
 *.py[cod]
 .DS_Store

@@ -35,4 +35,4 @@ unikraft run --metro sfo --name breakpoint --domain breakpoint.sfo.unikraft.app 
   --image index.unikraft.io/<your-org>/breakpoint:latest
 ```
 
-Keep API tokens out of the repository. For the run comparison and agent architecture, see [PLAN.md](PLAN.md).
+Keep API tokens out of the repository. For the original architecture, see [PLAN.md](PLAN.md). Current implementation status is in [PROGRESS.md](PROGRESS.md); the bounded local agent task and commands are in [docs/demo.md](docs/demo.md).

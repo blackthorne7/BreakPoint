@@ -15,10 +15,10 @@ BreakPoint is a research demo for measuring whether an AI agent improves at sele
 | Vulnerable lab | Done for first environment | Digest-pinned Vulhub Struts 2.3.30 / CVE-2017-5638 Compose setup. Target has no outbound route and is not part of the public demo. A loopback-only Nginx proxy exposes it at `http://127.0.0.1:18080`. |
 | Baseline run | Done | One fixed Nmap NSE check against the local lab, recorded as a run. It detects the vulnerable version using the published check; it does not execute a command or read a file. |
 | Run storage | Foundation done | Append-only SQLite schema and CLI in `run_store.py`, covering runs, tool invocations, and transcript events. The scanner baseline runner appends to the local database. |
-| Tool allowlisting | Partial | The baseline runner fixes the target, port, and Nmap script in code. There is not yet an agent tool-dispatch layer or a general allowlist registry. |
-| Scoring and metrics | Partial | Baseline outcome, one tool call, wall time, tool version, and script hash are recorded. Token use is unavailable for this non-agent run. No run comparison chart exists. |
-| Agent/orchestrator | Not started | No model-driven selection loop, target lifecycle orchestrator, or agent transcript exists. The baseline runner invokes one predetermined tool. |
-| Learning/memory | Not started | No strategy-note extraction, memory snapshots from prior agent runs, policy table, or repeated-run improvement demonstration. |
+| Tool allowlisting | Implemented; invalid decisions checked offline | `agent_demo.py` offers only fixed HTTP metadata and Nmap checks, with fixed loopback scope, empty argument objects, bounded output, and no shell interface. Unknown tools and unexpected arguments were rejected without dispatch in fake-model runs. |
+| Scoring and metrics | Partial | Baseline outcome and a trusted agent verdict are represented; tool calls, elapsed time, model usage, tool version, and script hash are recorded where available. Token cost is currently null. No agent comparison exists yet. |
+| Agent/orchestrator | Offline implementation added; partially checked | `agent_demo.py` has a bounded OpenAI-compatible decision loop and records JSONL events plus SQLite records. Syntax compilation and offline invalid-decision/budget paths passed; the fixed-tool path and live model path have not been run. |
+| Learning/memory | Extraction path implemented; no demonstration yet | The runner can extract source-linked structured notes and pass a notes file into another run. No run pair has been completed, so there is no evidence of improvement. |
 | TrueForge/TrueFoundry | Not started | A token was configured locally during setup, but there is no workspace or agent deployment recorded in the repository. Never print or commit token values. |
 | Additional environments / Shelled AI | Not started | Only the Struts lab is present. The optional Shelled AI PR/report track has not been pursued. |
 
@@ -31,6 +31,8 @@ BreakPoint is a research demo for measuring whether an AI agent improves at sele
 - [`lab/compose.yaml`](lab/compose.yaml), [`lab/nginx.conf`](lab/nginx.conf), [`lab/README.md`](lab/README.md): isolated local lab and operator instructions.
 - [`lab/run_baseline.py`](lab/run_baseline.py): fixed Nmap baseline runner.
 - [`run_store.py`](run_store.py), [`docs/run-record.md`](docs/run-record.md): append-only local run storage and record format.
+- [`agent_demo.py`](agent_demo.py), [`compare_runs.py`](compare_runs.py), [`docs/demo.md`](docs/demo.md): bounded local agent runner, notes extraction, local comparison command, task, scoring rule, and initial budgets. Core code compiles; only the no-provider fake budget and invalid-decision paths have been run.
+- Local attempt events and memory notes are written under ignored `data/events/` and `data/notes/` directories; completed runs are stored in ignored `data/runs.sqlite3` by default.
 
 ## Recorded baseline
 
@@ -62,15 +64,18 @@ Stop the lab with `docker compose -f lab/compose.yaml down`. The proxy is intent
 
 - Public deployment uses the Unikraft CLI and existing local configuration. The last recorded deployment was `breakpoint.sfo.unikraft.app`; the currently deployed page included the baseline JSON.
 - Keep `.env` and all API tokens out of Git and command output. `.env` is ignored.
-- Most recent recorded commit: `d74edd3` (`Record Struts scanner baseline`), pushed to `origin/master`.
-- No test suite has been run or documented as required. If a future task explicitly asks for validation, distinguish automated tests from operational checks.
+- Baseline work immediately before this implementation was committed as `d74edd3` (`Record Struts scanner baseline`) and pushed to `origin/master`.
+- `TRUEFOUNDRY_TOKEN` exists in local `.env`, but no provider endpoint or model ID is configured. The new runner requires `BREAKPOINT_MODEL_ENDPOINT`, `BREAKPOINT_MODEL`, and `BREAKPOINT_MODEL_API_KEY`; it does not load `.env` automatically. Never print or commit token values.
+- `python3 -m py_compile agent_demo.py compare_runs.py run_store.py` succeeded. Fake-model `budget_exhaustion`, `unknown_tool`, and `unexpected_arguments` runs each stopped after five model requests with zero tool calls; the latter two were rejected before dispatch. These records used `/tmp/breakpoint-offline-check.sqlite3` and are not real model results. The Nmap dispatch/success path and note extraction have not been exercised.
+- No live model calls or agent runs have been performed; the only completed vulnerability measurement remains the Nmap scanner baseline above.
+- The hosted page has not been updated to describe the new local runner. Deployment remains deliberately separate.
 
 ## Recommended next work
 
-1. Define the agent-run success condition and scoring schema for the first environment. Keep scanner-baseline semantics distinct from agent-run semantics.
-2. Build a small orchestrator around a model and a strictly fixed tool interface. Enforce the target scope and tool parameters in code, not only in the prompt; do not give the model arbitrary shell access.
-3. Record each agent choice, invocation, result, transcript event, elapsed time, and available token usage through the existing run-store format.
-4. Run repeated attempts against the same pinned lab and compare them. Begin with structured strategy notes as suggested in `PLAN.md`; only claim improvement if comparable runs show it.
-5. Once the local loop and safety boundaries are clear, decide whether/how to deploy the agent on TrueForge. The public static demo can then link to real run-comparison data.
+1. Review and validate the remaining paths in `agent_demo.py`: run the fake-model fixed-tool scenario after the lab is ready, then check note extraction and the trusted positive-verdict path. Offline budget and invalid-decision scenarios have already passed.
+2. Obtain an OpenAI-compatible HTTPS endpoint and model ID, then configure the three `BREAKPOINT_MODEL_*` environment variables without exposing credentials. A TrueFoundry token by itself is not enough to call a model.
+3. Once the provider is configured and the lab is ready, make one no-memory run, extract notes, and make one same-settings run with those exact notes. Preserve any failed attempts and note extraction usage.
+4. Produce the local two-run comparison with `compare_runs.py` and label it “illustrative demo; two attempts; not evidence of reliable improvement.” Do not claim improvement unless it happened; this small demonstration is not a rigorous evaluation.
+5. Update this file with actual checks and run IDs. Keep deployment, additional environments, and rigorous repeated evaluation deferred as directed by [`LUNA_PLAN.md`](LUNA_PLAN.md).
 
 The original plan also calls for more environments, a run 1 versus run N chart, and possibly the optional Shelled AI track; these remain later work, not completed deliverables.
