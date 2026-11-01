@@ -224,7 +224,7 @@ def dotenv_value(name: str) -> str:
 def model_request(messages: list[dict[str, str]], remaining_seconds: float, max_tokens: int = MAX_COMPLETION_TOKENS) -> tuple[str, dict[str, Any]]:
     endpoint, model, token = provider_config()
     body = json_bytes({"model": model, "messages": messages, "temperature": 0, "max_tokens": max_tokens})
-    req = urllib.request.Request(endpoint, data=body, headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"}, method="POST")
+    req = urllib.request.Request(endpoint, data=body, headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "User-Agent": "BreakPoint-security-benchmark/1.0"}, method="POST")
     with urllib.request.build_opener(NoRedirect).open(req, timeout=min(45, remaining_seconds)) as response:
         payload = json.loads(response.read(1024 * 1024))
     content = payload["choices"][0]["message"]["content"]

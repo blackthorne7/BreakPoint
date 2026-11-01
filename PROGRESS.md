@@ -15,11 +15,11 @@ BreakPoint is a research demo for measuring whether an AI agent improves at sele
 | Vulnerable lab | Done for first environment | Digest-pinned Vulhub Struts 2.3.30 / CVE-2017-5638 Compose setup. Target has no outbound route and is not part of the public demo. A loopback-only Nginx proxy exposes it at `http://127.0.0.1:18080`. |
 | Baseline run | Done | One fixed Nmap NSE check against the local lab, recorded as a run. It detects the vulnerable version using the published check; it does not execute a command or read a file. |
 | Run storage | Foundation done | Append-only SQLite schema and CLI in `run_store.py`, covering runs, tool invocations, and transcript events. The scanner baseline runner appends to the local database. |
-| Tool allowlisting | Implemented; invalid decisions checked offline | `agent_demo.py` offers only fixed HTTP metadata and Nmap checks, with fixed loopback scope, empty argument objects, bounded output, and no shell interface. Unknown tools and unexpected arguments were rejected without dispatch in fake-model runs. |
-| Scoring and metrics | Partial | Baseline outcome and a trusted agent verdict are represented; tool calls, elapsed time, model usage, tool version, and script hash are recorded where available. Token cost is currently null. No agent comparison exists yet. |
-| Agent/orchestrator | TrueFoundry configured; partially checked | `agent_demo.py` has a bounded OpenAI-compatible decision loop and records JSONL events plus SQLite records. Syntax compilation and offline invalid-decision/budget paths passed; the fixed-tool path and live model path have not been run. |
-| Learning/memory | Extraction path implemented; no demonstration yet | The runner can extract source-linked structured notes and pass a notes file into another run. No run pair has been completed, so there is no evidence of improvement. |
-| TrueForge/TrueFoundry | Not started | A token was configured locally during setup, but there is no workspace or agent deployment recorded in the repository. Never print or commit token values. |
+| Tool allowlisting | Implemented and exercised | `agent_demo.py` exposes only fixed HTTP metadata and Nmap checks on loopback, validates empty arguments and fixed IDs, caps output, and has no shell interface. Offline invalid-decision scenarios and the live fixed Nmap path have run. |
+| Scoring and metrics | Working for the local demo | Both agent attempts have a trusted positive verdict, one tool call, elapsed time, and token counts. Provider cost was not returned, so cost remains unavailable. |
+| Agent/orchestrator | Local illustrative demo complete | Two real TrueFoundry model runs used the bounded loop and wrote event logs and SQLite records. The hosted demo remains the static scanner-baseline page. |
+| Learning/memory | Mechanism demonstrated; improvement not established | Notes were extracted from the first run, with source event IDs, and supplied to the second. Both attempts chose the same successful tool in one call; the second was about 1.45 seconds faster, which is not evidence of reliable improvement. |
+| TrueForge deployment | Not started | The local TrueFoundry gateway was used for the two attempts above, but no agent/workspace deployment to the TrueForge sponsor platform is recorded. |
 | Additional environments / Shelled AI | Not started | Only the Struts lab is present. The optional Shelled AI PR/report track has not been pursued. |
 
 ## Important artifacts
@@ -31,7 +31,7 @@ BreakPoint is a research demo for measuring whether an AI agent improves at sele
 - [`lab/compose.yaml`](lab/compose.yaml), [`lab/nginx.conf`](lab/nginx.conf), [`lab/README.md`](lab/README.md): isolated local lab and operator instructions.
 - [`lab/run_baseline.py`](lab/run_baseline.py): fixed Nmap baseline runner.
 - [`run_store.py`](run_store.py), [`docs/run-record.md`](docs/run-record.md): append-only local run storage and record format.
-- [`agent_demo.py`](agent_demo.py), [`compare_runs.py`](compare_runs.py), [`docs/demo.md`](docs/demo.md): bounded local agent runner, notes extraction, local comparison command, task, scoring rule, and initial budgets. Core code compiles; only the no-provider fake budget and invalid-decision paths have been run.
+- [`agent_demo.py`](agent_demo.py), [`compare_runs.py`](compare_runs.py), [`docs/demo.md`](docs/demo.md): bounded local agent runner, notes extraction, local comparison command, task, scoring rule, and budgets.
 - Local attempt events and memory notes are written under ignored `data/events/` and `data/notes/` directories; completed runs are stored in ignored `data/runs.sqlite3` by default.
 
 ## Recorded baseline
@@ -44,6 +44,19 @@ The public baseline record has run ID `struts2-s2045-nmap-20261031T225353604818Z
 - Result: vulnerability detected; one tool call; 11,170 ms; token counts unavailable.
 
 The `success` outcome means the vulnerability check found the expected vulnerable target. Do not present this as a model-agent success or as evidence of learning.
+
+## Illustrative agent demonstration
+
+This is the two-attempt Phase A demo from `LUNA_PLAN.md`, not a controlled evaluation:
+
+| Attempt | Run ID | Outcome | Tool calls | Wall time | Input / output tokens | Memory |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| First, no memory | `struts2-agent-20261101T004643478104Z` | Confirmed vulnerable | 1 | 16,609 ms | 1,163 / 162 | No |
+| Second, with extracted notes | `struts2-agent-20261101T004810839147Z` | Confirmed vulnerable | 1 | 15,163 ms | 1,635 / 201 | Yes |
+
+Both used `tfy-managed/gpt-6-luna` and the fixed Nmap 7.992 `http-vuln-cve2017-5638` script (SHA-256 `af5ce476160bc9a68fe33b6c4d82e24eac2d3879c21af12975ae112ab0d17ab0`). The scanner returned a positive result, and the trusted evaluator accepted the model's cited invocation in both runs. The note extraction used 897 input and 239 output tokens. Cost was unavailable for all three requests. The second run was faster in this sample, but both runs selected the same tool in one call; do not claim learning or reliable improvement from this pair.
+
+Two earlier attempts were also retained as failed infrastructure records: `struts2-agent-20261101T002837864300Z` failed DNS resolution in the sandbox; `struts2-agent-20261101T003029607552Z` was blocked by Cloudflare with error 1010 before model inference. After adding a descriptive User-Agent, a non-inference `/models` request returned HTTP 200 and listed the configured model. The subsequent two runs and extraction succeeded.
 
 ## Local lab operations
 
@@ -65,18 +78,16 @@ Stop the lab with `docker compose -f lab/compose.yaml down`. The proxy is intent
 - Public deployment uses the Unikraft CLI and existing local configuration. The last recorded deployment was `breakpoint.sfo.unikraft.app`; the currently deployed page included the baseline JSON.
 - Keep `.env` and all API tokens out of Git and command output. `.env` is ignored.
 - Baseline work immediately before this implementation was committed as `d74edd3` (`Record Struts scanner baseline`) and pushed to `origin/master`.
-- The user configured `https://gateway.truefoundry.ai`, model `tfy-managed/gpt-6-luna`, and renamed the local PAT variable to `TRUEFOUNDRY_GPT_LUNA_TOKEN`. The runner uses the gateway's `/chat/completions` route and reads only that named token from `.env` (or `BREAKPOINT_MODEL_API_KEY` if explicitly set). Gateway authorization/model access has not yet been verified. Never print or commit token values.
-- The current runner config resolved to the expected URL/model and confirmed that a token value was loaded without displaying it. Syntax compilation passed after this configuration change. The local readiness request to `http://127.0.0.1:18080/` was refused, so no model request or scan was made.
-- `python3 -m py_compile agent_demo.py compare_runs.py run_store.py` succeeded. Fake-model `budget_exhaustion`, `unknown_tool`, and `unexpected_arguments` runs each stopped after five model requests with zero tool calls; the latter two were rejected before dispatch. These records used `/tmp/breakpoint-offline-check.sqlite3` and are not real model results. The Nmap dispatch/success path and note extraction have not been exercised.
-- No live model calls or agent runs have been performed; the only completed vulnerability measurement remains the Nmap scanner baseline above.
+- The user configured `https://gateway.truefoundry.ai`, model `tfy-managed/gpt-6-luna`, and renamed the local PAT variable to `TRUEFOUNDRY_GPT_LUNA_TOKEN`. The runner uses the gateway's `/chat/completions` route and reads only that named token from `.env` (or `BREAKPOINT_MODEL_API_KEY` if explicitly set). Never print or commit token values.
+- TrueFoundry initially returned Cloudflare 1010 to Python's default User-Agent; the runner now identifies itself as `BreakPoint-security-benchmark/1.0` and the model-list check plus inference succeeded.
+- Syntax compilation passed. Offline fake `budget_exhaustion`, `unknown_tool`, and `unexpected_arguments` paths each stopped after five requests with zero tool calls. Two real bounded attempts and one notes extraction then completed; see the run table above.
+- Detailed logs, notes, and SQLite records remain local under ignored `data/events/`, `data/notes/`, and `data/runs.sqlite3`. The public `baseline-run.json` and hosted page still describe only the scanner baseline.
 - The hosted page has not been updated to describe the new local runner. Deployment remains deliberately separate.
 
 ## Recommended next work
 
-1. Review and validate the remaining paths in `agent_demo.py`: run the fake-model fixed-tool scenario after the lab is ready, then check note extraction and the trusted positive-verdict path. Offline budget and invalid-decision scenarios have already passed.
-2. Confirm the local lab is ready, then make the first bounded TrueFoundry attempt. Preserve any provider failure and usage rather than retrying blindly.
-3. If the first attempt completes, extract notes and make one same-settings attempt with those exact notes. Record extraction usage and keep scanner and agent records separate.
-4. Produce the local two-run comparison with `compare_runs.py` and label it “illustrative demo; two attempts; not evidence of reliable improvement.” Do not claim improvement unless it happened; this small demonstration is not a rigorous evaluation.
-5. Update this file with actual checks and run IDs. Keep deployment, additional environments, and rigorous repeated evaluation deferred as directed by [`LUNA_PLAN.md`](LUNA_PLAN.md).
+1. Decide whether to publish a limited, clearly labeled export of the local two-run comparison on the static demo. Keep detailed transcripts private and scanner-baseline data separate.
+2. Decide separately whether to begin Phase B evaluation. Before spending on more calls, set the cohort size, budget, reset procedure, and comparison protocol as described in [`LUNA_PLAN.md`](LUNA_PLAN.md).
+3. Keep TrueForge deployment, additional environments, and the optional Shelled AI track deferred until explicitly prioritized.
 
 The original plan also calls for more environments, a run 1 versus run N chart, and possibly the optional Shelled AI track; these remain later work, not completed deliverables.
