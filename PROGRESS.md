@@ -17,7 +17,7 @@ BreakPoint is a research demo for measuring whether an AI agent improves at sele
 | Run storage | Foundation done | Append-only SQLite schema and CLI in `run_store.py`, covering runs, tool invocations, and transcript events. The scanner baseline runner appends to the local database. |
 | Tool allowlisting | Implemented; invalid decisions checked offline | `agent_demo.py` offers only fixed HTTP metadata and Nmap checks, with fixed loopback scope, empty argument objects, bounded output, and no shell interface. Unknown tools and unexpected arguments were rejected without dispatch in fake-model runs. |
 | Scoring and metrics | Partial | Baseline outcome and a trusted agent verdict are represented; tool calls, elapsed time, model usage, tool version, and script hash are recorded where available. Token cost is currently null. No agent comparison exists yet. |
-| Agent/orchestrator | Offline implementation added; partially checked | `agent_demo.py` has a bounded OpenAI-compatible decision loop and records JSONL events plus SQLite records. Syntax compilation and offline invalid-decision/budget paths passed; the fixed-tool path and live model path have not been run. |
+| Agent/orchestrator | TrueFoundry configured; partially checked | `agent_demo.py` has a bounded OpenAI-compatible decision loop and records JSONL events plus SQLite records. Syntax compilation and offline invalid-decision/budget paths passed; the fixed-tool path and live model path have not been run. |
 | Learning/memory | Extraction path implemented; no demonstration yet | The runner can extract source-linked structured notes and pass a notes file into another run. No run pair has been completed, so there is no evidence of improvement. |
 | TrueForge/TrueFoundry | Not started | A token was configured locally during setup, but there is no workspace or agent deployment recorded in the repository. Never print or commit token values. |
 | Additional environments / Shelled AI | Not started | Only the Struts lab is present. The optional Shelled AI PR/report track has not been pursued. |
@@ -65,7 +65,8 @@ Stop the lab with `docker compose -f lab/compose.yaml down`. The proxy is intent
 - Public deployment uses the Unikraft CLI and existing local configuration. The last recorded deployment was `breakpoint.sfo.unikraft.app`; the currently deployed page included the baseline JSON.
 - Keep `.env` and all API tokens out of Git and command output. `.env` is ignored.
 - Baseline work immediately before this implementation was committed as `d74edd3` (`Record Struts scanner baseline`) and pushed to `origin/master`.
-- `TRUEFOUNDRY_TOKEN` exists in local `.env`, but no provider endpoint or model ID is configured. The new runner requires `BREAKPOINT_MODEL_ENDPOINT`, `BREAKPOINT_MODEL`, and `BREAKPOINT_MODEL_API_KEY`; it does not load `.env` automatically. Never print or commit token values.
+- The user configured `https://gateway.truefoundry.ai`, model `tfy-managed/gpt-6-luna`, and renamed the local PAT variable to `TRUEFOUNDRY_GPT_LUNA_TOKEN`. The runner uses the gateway's `/chat/completions` route and reads only that named token from `.env` (or `BREAKPOINT_MODEL_API_KEY` if explicitly set). Gateway authorization/model access has not yet been verified. Never print or commit token values.
+- The current runner config resolved to the expected URL/model and confirmed that a token value was loaded without displaying it. Syntax compilation passed after this configuration change. The local readiness request to `http://127.0.0.1:18080/` was refused, so no model request or scan was made.
 - `python3 -m py_compile agent_demo.py compare_runs.py run_store.py` succeeded. Fake-model `budget_exhaustion`, `unknown_tool`, and `unexpected_arguments` runs each stopped after five model requests with zero tool calls; the latter two were rejected before dispatch. These records used `/tmp/breakpoint-offline-check.sqlite3` and are not real model results. The Nmap dispatch/success path and note extraction have not been exercised.
 - No live model calls or agent runs have been performed; the only completed vulnerability measurement remains the Nmap scanner baseline above.
 - The hosted page has not been updated to describe the new local runner. Deployment remains deliberately separate.
@@ -73,8 +74,8 @@ Stop the lab with `docker compose -f lab/compose.yaml down`. The proxy is intent
 ## Recommended next work
 
 1. Review and validate the remaining paths in `agent_demo.py`: run the fake-model fixed-tool scenario after the lab is ready, then check note extraction and the trusted positive-verdict path. Offline budget and invalid-decision scenarios have already passed.
-2. Obtain an OpenAI-compatible HTTPS endpoint and model ID, then configure the three `BREAKPOINT_MODEL_*` environment variables without exposing credentials. A TrueFoundry token by itself is not enough to call a model.
-3. Once the provider is configured and the lab is ready, make one no-memory run, extract notes, and make one same-settings run with those exact notes. Preserve any failed attempts and note extraction usage.
+2. Confirm the local lab is ready, then make the first bounded TrueFoundry attempt. Preserve any provider failure and usage rather than retrying blindly.
+3. If the first attempt completes, extract notes and make one same-settings attempt with those exact notes. Record extraction usage and keep scanner and agent records separate.
 4. Produce the local two-run comparison with `compare_runs.py` and label it “illustrative demo; two attempts; not evidence of reliable improvement.” Do not claim improvement unless it happened; this small demonstration is not a rigorous evaluation.
 5. Update this file with actual checks and run IDs. Keep deployment, additional environments, and rigorous repeated evaluation deferred as directed by [`LUNA_PLAN.md`](LUNA_PLAN.md).
 

@@ -56,12 +56,11 @@ Show outcome, tool calls, elapsed time, available token usage/cost, and whether 
 
 ## Provider configuration
 
-Use an OpenAI-compatible chat-completions endpoint configured explicitly through environment variables. Do not infer the endpoint or model from a token alone, and never print credentials. For example, after obtaining the endpoint and model ID from the provider:
+The current configuration uses the TrueFoundry AI Gateway. Its OpenAI-compatible client uses the gateway base URL and a namespaced model ID; the runner posts to the corresponding `/chat/completions` route. It reads only `TRUEFOUNDRY_GPT_LUNA_TOKEN` from `.env` (without executing the file or printing the value), or uses `BREAKPOINT_MODEL_API_KEY` if explicitly set. Do not print credentials.
 
 ```sh
-export BREAKPOINT_MODEL_ENDPOINT='https://provider.example/v1/chat/completions'
-export BREAKPOINT_MODEL='provider/model-id'
-export BREAKPOINT_MODEL_API_KEY="$TRUEFOUNDRY_TOKEN"
+export BREAKPOINT_MODEL_BASE_URL='https://gateway.truefoundry.ai'
+export BREAKPOINT_MODEL='tfy-managed/gpt-6-luna'
 python3 agent_demo.py run
 python3 agent_demo.py extract-notes RUN_ID --output data/notes/RUN_ID.json
 python3 agent_demo.py run --memory data/notes/RUN_ID.json
@@ -69,7 +68,7 @@ python3 run_store.py list
 python3 compare_runs.py RUN_1_ID RUN_2_ID --notes data/notes/RUN_1_ID.json
 ```
 
-The runner accepts HTTPS endpoints, or HTTP only on loopback. It does not load `.env` automatically. Do not put credentials into prompts or event logs. If endpoint/model configuration is unavailable, complete offline implementation and report that no live agent runs were made. Do not fabricate provider results.
+The endpoint and model shown match the current local configuration; environment variables can override them. `BREAKPOINT_MODEL_ENDPOINT` can override the full chat-completions URL. The runner does not execute or generally load `.env`; it reads only the named token. Do not put credentials into prompts or event logs. If the token or model access is unavailable, report that no live agent runs were made. Do not fabricate provider results.
 
 ### Offline fake-model checks
 
