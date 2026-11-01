@@ -23,7 +23,7 @@
           <div class="eyebrow"><span class="live-dot"></span> RESEARCH DEMO <span class="eyebrow-sep">/</span> ISOLATED LABS</div>
           <h1>An agent that<br />learns from <em>every run.</em></h1>
           <p class="lede">BreakPoint measures whether an AI agent gets better at selecting approved security tools in repeatable, intentionally vulnerable environments.</p>
-          <a class="button" href="#baseline">VIEW BASELINE <span aria-hidden="true">↓</span></a>
+          <a class="button" href="#comparison">VIEW THE DEMO <span aria-hidden="true">↓</span></a>
         </div>
         <div class="hero-art" aria-label="Abstract network diagram">
           <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
@@ -36,8 +36,8 @@
       </section>
 
       <section class="metrics-strip" aria-label="Project status">
-        <div><span class="metric-label">CURRENT PHASE</span><strong>BASELINE</strong></div>
-        <div><span class="metric-label">RUNS RECORDED</span><strong>01</strong></div>
+        <div><span class="metric-label">CURRENT PHASE</span><strong>ILLUSTRATIVE DEMO</strong></div>
+        <div><span class="metric-label">COMPARISON RUNS</span><strong>02</strong></div>
         <div><span class="metric-label">TARGET CLASS</span><strong>INTENTIONALLY VULNERABLE</strong></div>
         <div><span class="metric-label">EXECUTION</span><strong><i class="status-dot"></i> ISOLATED LAB</strong></div>
       </section>
@@ -60,8 +60,32 @@
         </div>
       </section>
 
+      <section class="comparison section" id="comparison">
+        <div class="section-heading">
+          <div><div class="eyebrow muted">02 / MEMORY DEMONSTRATION</div><h2>Two attempts. <em>Same result.</em></h2></div>
+          <span class="run-tag">ILLUSTRATIVE · NOT AN EVALUATION</span>
+        </div>
+        <p class="section-intro">A bounded local agent ran the same vulnerability-detection task twice with TrueFoundry GPT-6 Luna. The first run had no memory; a short note was extracted from its visible tool result and supplied to the second. Both confirmed the finding in one Nmap call. This demonstrates the memory path, not reliable improvement.</p>
+        <div class="comparison-card">
+          <div class="table-scroll">
+            <table class="comparison-table">
+              <thead><tr><th>Attempt</th><th>Memory</th><th>Outcome</th><th>Tool calls</th><th>Wall time</th><th>Model tokens</th></tr></thead>
+              <tbody>
+                <tr><td>First<br /><small>struts2-agent-20261101T004643478104Z</small></td><td>No</td><td class="result-positive">Confirmed vulnerable</td><td>1</td><td>16.61 s</td><td>1,163 in / 162 out</td></tr>
+                <tr><td>Second<br /><small>struts2-agent-20261101T004810839147Z</small></td><td>Yes<br /><small>Notes from first run</small></td><td class="result-positive">Confirmed vulnerable</td><td>1</td><td>15.16 s</td><td>1,635 in / 201 out</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="comparison-meta">
+            <span>NOTE EXTRACTION · 897 INPUT / 239 OUTPUT TOKENS · COST NOT REPORTED</span>
+            <a href="agent-comparison.json">LIMITED SUMMARY JSON ↗</a>
+          </div>
+        </div>
+        <p class="comparison-caveat">The second run was 1.45 seconds faster in this pair, but both attempts chose the same tool in one call. Two attempts cannot establish improvement. Two setup attempts also failed before model inference and are listed in the JSON; no target or detailed transcript is published.</p>
+      </section>
+
       <section class="loop section">
-        <div class="eyebrow muted">02 / THE LEARNING LOOP</div>
+        <div class="eyebrow muted">03 / THE LEARNING LOOP</div>
         <h2>Measure. Remember. <em>Improve.</em></h2>
         <div class="steps">
           <article><span class="step-num">01</span><h3>Choose</h3><p>Select from a fixed, approved toolbelt for a known lab target.</p></article>

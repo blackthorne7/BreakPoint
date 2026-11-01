@@ -1,0 +1,71 @@
+{
+  "record_type": "illustrative_memory_demo",
+  "title": "Two-attempt agent memory demonstration",
+  "label": "Illustrative demo; two attempts; not evidence of reliable improvement.",
+  "is_rigorous_evaluation": false,
+  "environment": {
+    "id": "struts2-s2-045",
+    "version": "Vulhub Struts 2.3.30",
+    "image_ref": "vulhub/struts2@sha256:b992e080d8e5ad332bf526ae26124d28f56ca4fc9e0eaa91510dbee9870eb2c8",
+    "target_scope": "Local loopback only; target is not exposed by the public demo."
+  },
+  "model": "tfy-managed/gpt-6-luna",
+  "tool": {
+    "id": "nmap/http-vuln-cve2017-5638",
+    "version": "Nmap 7.992",
+    "script_sha256": "af5ce476160bc9a68fe33b6c4d82e24eac2d3879c21af12975ae112ab0d17ab0"
+  },
+  "attempts": [
+    {
+      "run_id": "struts2-agent-20261101T004643478104Z",
+      "memory_used": false,
+      "outcome": "confirmed_vulnerable",
+      "tool_calls": 1,
+      "model_requests": 2,
+      "wall_time_ms": 16609,
+      "input_tokens": 1163,
+      "output_tokens": 162,
+      "cost_usd": null
+    },
+    {
+      "run_id": "struts2-agent-20261101T004810839147Z",
+      "memory_used": true,
+      "memory_source_run_id": "struts2-agent-20261101T004643478104Z",
+      "outcome": "confirmed_vulnerable",
+      "tool_calls": 1,
+      "model_requests": 2,
+      "wall_time_ms": 15163,
+      "input_tokens": 1635,
+      "output_tokens": 201,
+      "cost_usd": null
+    }
+  ],
+  "note_extraction": {
+    "source_run_id": "struts2-agent-20261101T004643478104Z",
+    "input_tokens": 897,
+    "output_tokens": 239,
+    "cost_usd": null
+  },
+  "comparison": {
+    "outcomes_match": true,
+    "tool_calls_match": true,
+    "wall_time_change_ms_second_minus_first": -1446,
+    "interpretation": "Both attempts selected the same successful tool in one call. The observed time difference is not evidence of reliable improvement."
+  },
+  "setup_failures_before_inference": [
+    {
+      "run_id": "struts2-agent-20261101T002837864300Z",
+      "reason": "Gateway hostname resolution failed in the sandbox; no model response or tool call."
+    },
+    {
+      "run_id": "struts2-agent-20261101T003029607552Z",
+      "reason": "Cloudflare error 1010 blocked the client before inference; no model response or tool call."
+    }
+  ],
+  "limitations": [
+    "Two attempts are an illustrative mechanism check, not a controlled or statistically meaningful evaluation.",
+    "The Nmap finding is the task's evidence source, not independent ground truth.",
+    "Provider-reported cost was unavailable.",
+    "Detailed prompts, notes, transcripts, and raw tool output are kept local."
+  ]
+}
