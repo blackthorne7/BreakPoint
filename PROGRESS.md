@@ -5,19 +5,19 @@
 
 ## Project in one paragraph
 
-BreakPoint is a research demo for measuring whether an AI agent improves at selecting approved security tools across repeatable runs in intentionally vulnerable labs. The intended users are security researchers and builders who want to evaluate agent performance with reproducible records. The current public demo shows a fixed scanner baseline; it is not yet an autonomous-agent benchmark.
+BreakPoint is a research demo for measuring whether an AI agent improves at selecting approved security tools across repeatable runs in intentionally vulnerable labs. The intended users are security researchers and builders who want to evaluate agent performance with reproducible records. The public page shows the fixed scanner baseline and a limited two-attempt memory demonstration; it is not a rigorous evaluation.
 
 ## Current state
 
 | Area | Status | What exists |
 | --- | --- | --- |
-| Public demo | Done | Static page at <https://breakpoint.sfo.unikraft.app>; baseline record at <https://breakpoint.sfo.unikraft.app/baseline-run.json>. Both are served from a Unikraft instance in SFO. |
+| Public demo | Done | Static page at <https://breakpoint.sfo.unikraft.app> shows the scanner baseline and clearly labeled two-attempt memory summary. Limited JSON export at <https://breakpoint.sfo.unikraft.app/agent-comparison.json>; baseline record at <https://breakpoint.sfo.unikraft.app/baseline-run.json>. |
 | Vulnerable lab | Done for first environment | Digest-pinned Vulhub Struts 2.3.30 / CVE-2017-5638 Compose setup. Target has no outbound route and is not part of the public demo. A loopback-only Nginx proxy exposes it at `http://127.0.0.1:18080`. |
 | Baseline run | Done | One fixed Nmap NSE check against the local lab, recorded as a run. It detects the vulnerable version using the published check; it does not execute a command or read a file. |
 | Run storage | Foundation done | Append-only SQLite schema and CLI in `run_store.py`, covering runs, tool invocations, and transcript events. The scanner baseline runner appends to the local database. |
 | Tool allowlisting | Implemented and exercised | `agent_demo.py` exposes only fixed HTTP metadata and Nmap checks on loopback, validates empty arguments and fixed IDs, caps output, and has no shell interface. Offline invalid-decision scenarios and the live fixed Nmap path have run. |
 | Scoring and metrics | Working for the local demo | Both agent attempts have a trusted positive verdict, one tool call, elapsed time, and token counts. Provider cost was not returned, so cost remains unavailable. |
-| Agent/orchestrator | Local illustrative demo complete | Two real TrueFoundry model runs used the bounded loop and wrote event logs and SQLite records. The hosted demo remains the static scanner-baseline page. |
+| Agent/orchestrator | Local illustrative demo complete | Two real TrueFoundry model runs used the bounded loop and wrote event logs and SQLite records. Their limited comparison is published on the static demo; raw records remain local. |
 | Learning/memory | Mechanism demonstrated; improvement not established | Notes were extracted from the first run, with source event IDs, and supplied to the second. Both attempts chose the same successful tool in one call; the second was about 1.45 seconds faster, which is not evidence of reliable improvement. |
 | TrueForge deployment | Not started | The local TrueFoundry gateway was used for the two attempts above, but no agent/workspace deployment to the TrueForge sponsor platform is recorded. |
 | Additional environments / Shelled AI | Not started | Only the Struts lab is present. The optional Shelled AI PR/report track has not been pursued. |
@@ -28,6 +28,7 @@ BreakPoint is a research demo for measuring whether an AI agent improves at sele
 - [`README.md`](README.md): project summary, public demo, local preview, lab and deployment pointers.
 - [`index.html`](index.html), [`styles.css`](styles.css): static public demo.
 - [`baseline-run.json`](baseline-run.json): public metadata for the measured scanner baseline. This is a separate, intentionally limited public representation; detailed tool output is stored locally.
+- [`agent-comparison.json`](agent-comparison.json): public-safe summary of the two agent attempts, note-extraction usage, setup failures before inference, and limitations. It excludes prompts, note text, transcripts, and raw tool output.
 - [`lab/compose.yaml`](lab/compose.yaml), [`lab/nginx.conf`](lab/nginx.conf), [`lab/README.md`](lab/README.md): isolated local lab and operator instructions.
 - [`lab/run_baseline.py`](lab/run_baseline.py): fixed Nmap baseline runner.
 - [`run_store.py`](run_store.py), [`docs/run-record.md`](docs/run-record.md): append-only local run storage and record format.
@@ -75,19 +76,18 @@ Stop the lab with `docker compose -f lab/compose.yaml down`. The proxy is intent
 
 ## Deployment and repository notes
 
-- Public deployment uses the Unikraft CLI and existing local configuration. The last recorded deployment was `breakpoint.sfo.unikraft.app`; the currently deployed page included the baseline JSON.
+- Public deployment uses the Unikraft CLI and existing local configuration. The comparison page and JSON at `breakpoint.sfo.unikraft.app` are live in SFO; the served page returned HTTP 200 and the JSON returned HTTP 200.
 - Keep `.env` and all API tokens out of Git and command output. `.env` is ignored.
 - Baseline work immediately before this implementation was committed as `d74edd3` (`Record Struts scanner baseline`) and pushed to `origin/master`.
 - The user configured `https://gateway.truefoundry.ai`, model `tfy-managed/gpt-6-luna`, and renamed the local PAT variable to `TRUEFOUNDRY_GPT_LUNA_TOKEN`. The runner uses the gateway's `/chat/completions` route and reads only that named token from `.env` (or `BREAKPOINT_MODEL_API_KEY` if explicitly set). Never print or commit token values.
 - TrueFoundry initially returned Cloudflare 1010 to Python's default User-Agent; the runner now identifies itself as `BreakPoint-security-benchmark/1.0` and the model-list check plus inference succeeded.
 - Syntax compilation passed. Offline fake `budget_exhaustion`, `unknown_tool`, and `unexpected_arguments` paths each stopped after five requests with zero tool calls. Two real bounded attempts and one notes extraction then completed; see the run table above.
-- Detailed logs, notes, and SQLite records remain local under ignored `data/events/`, `data/notes/`, and `data/runs.sqlite3`. The public `baseline-run.json` and hosted page still describe only the scanner baseline.
-- The hosted page has not been updated to describe the new local runner. Deployment remains deliberately separate.
+- Detailed logs, notes, and SQLite records remain local under ignored `data/events/`, `data/notes/`, and `data/runs.sqlite3`. Public assets include only the scanner baseline and limited comparison JSON.
+- Current deployed image: `blackthorne/breakpoint@sha256:0f607a38781b098030a200803280dc2048ef6a5444c449bbb490b79cf7b57458`. Build from the project directory (`unikraft build .`) so the `Kraftfile` `base-compat` runtime is included; building `./Dockerfile` directly produced a kernel-less image that failed to start.
 
 ## Recommended next work
 
-1. Decide whether to publish a limited, clearly labeled export of the local two-run comparison on the static demo. Keep detailed transcripts private and scanner-baseline data separate.
-2. Decide separately whether to begin Phase B evaluation. Before spending on more calls, set the cohort size, budget, reset procedure, and comparison protocol as described in [`LUNA_PLAN.md`](LUNA_PLAN.md).
-3. Keep TrueForge deployment, additional environments, and the optional Shelled AI track deferred until explicitly prioritized.
+1. Decide separately whether to begin Phase B evaluation. Before spending on more calls, set the cohort size, budget, reset procedure, and comparison protocol as described in [`LUNA_PLAN.md`](LUNA_PLAN.md).
+2. Keep TrueForge agent deployment, additional environments, and the optional Shelled AI track deferred until explicitly prioritized.
 
 The original plan also calls for more environments, a run 1 versus run N chart, and possibly the optional Shelled AI track; these remain later work, not completed deliverables.
